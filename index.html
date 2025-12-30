@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Voxnova – AI Text to Speech</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#020617;
+  color:#fff;
+}
+header{
+  padding:20px;
+  text-align:center;
+  background:#020617;
+  border-bottom:1px solid #1e293b;
+}
+header h1{color:#38bdf8;margin:0}
+section{padding:20px}
+.box{
+  max-width:420px;
+  margin:auto;
+  background:#020617;
+  border:1px solid #1e293b;
+  border-radius:16px;
+  padding:18px;
+}
+input,textarea,select,button{
+  width:100%;
+  margin-top:8px;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+}
+textarea{height:100px}
+button{
+  background:#38bdf8;
+  font-weight:bold;
+  cursor:pointer;
+}
+.secondary{background:#22c55e;color:#000}
+.danger{background:#ef4444}
+.small{font-size:12px;color:#94a3b8;text-align:center}
+.hidden{display:none}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Voxnova</h1>
+  <p class="small">Free & Premium AI Text to Speech</p>
+</header>
+
+<!-- LOGIN -->
+<section id="loginBox" class="box">
+  <h3>Login / Signup</h3>
+  <input id="email" placeholder="Email">
+  <button onclick="login()">Continue</button>
+</section>
+
+<!-- DASHBOARD -->
+<section id="app" class="box hidden">
+  <p class="small">Characters Left: <span id="chars">16000</span></p>
+
+  <textarea id="text" placeholder="Type text (max 3000 chars)"></textarea>
+  <p class="small"><span id="count">0</span>/3000</p>
+
+  <select id="voices"></select>
+
+  <button onclick="speakFree()">🔊 Free Speak</button>
+  <button class="secondary" onclick="speakPremium()">💎 Premium Speak</button>
+  <button class="danger" onclick="speechSynthesis.cancel()">Stop</button>
+
+  <hr style="border:1px solid #1e293b">
+
+  <h4>Upgrade Plan</h4>
+  <p class="small">UPI: <b>8052803520@ybl</b></p>
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=8052803520@ybl" width="150">
+  <input placeholder="Enter UTR Number">
+  <button>Submit UTR</button>
+
+  <p class="small">Demo payment system (manual verification)</p>
+</section>
+
+<script>
+/* ---------- LOGIN SYSTEM ---------- */
+let user = localStorage.getItem("voxnova_user");
+
+if(user){
+  startApp();
+}
+
+function login(){
+  const email=document.getElementById("email").value;
+  if(!email) return alert("Enter email");
+  localStorage.setItem("voxnova_user",email);
+  localStorage.setItem("voxnova_chars",16000);
+  startApp();
+}
+
+function startApp(){
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  loadVoices();
+  updateChars();
+}
+
+/* ---------- CHARACTER COUNT ---------- */
+function updateChars(){
+  document.getElementById("chars").innerText =
+    localStorage.getItem("voxnova_chars");
+}
+
+document.getElementById("text").addEventListener("input",e=>{
+  document.getElementById("count").innerText=e.target.value.length;
+});
+
+/* ---------- FREE TTS (NO API) ---------- */
+let voices=[];
+function loadVoices(){
+  voices=speechSynthesis.getVoices();
+  const v=document.getElementById("voices");
+  v.innerHTML="";
+  voices.forEach((voice,i)=>{
+    const o=document.createElement("option");
+    o.value=i;
+    o.text=`${voice.name} (${voice.lang})`;
+    v.appendChild(o);
+  });
+}
+speechSynthesis.onvoiceschanged=loadVoices;
+
+function speakFree(){
+  const text=document.getElementById("text").value;
+  if(text.length>3000) return alert("Max 3000 chars");
+  const chars=+localStorage.getItem("voxnova_chars");
+  if(chars<text.length) return alert("Not enough characters");
+
+  const u=new SpeechSynthesisUtterance(text);
+  u.voice=voices[document.getElementById("voices").value];
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+
+  localStorage.setItem("voxnova_chars",chars-text.length);
+  updateChars();
+}
+
+/* ---------- PREMIUM MODE (deAPI SLOT) ---------- */
+function speakPremium(){
+  alert("Premium mode demo 🚀\nAPI call placeholder added.");
+
+  /* ===============================
+     🔥 deAPI INTEGRATION SLOT 🔥
+     ===============================
+
+  fetch("https://api.deapi.ai/tts", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer YOUR_DEAPI_API_KEY",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      text: document.getElementById("text").value,
+      voice: "en-US-premium"
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    const audio = new Audio(data.audio_url);
+    audio.play();
+  });
+
+  ⚠️ Production me API key FRONTEND me mat rakho
+  ✔ Backend se call karna best practice
+  */
+}
+</script>
+
+</body>
+</html>
